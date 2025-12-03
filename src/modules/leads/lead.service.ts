@@ -1,5 +1,5 @@
 import prisma from '../../utils/prisma';
-import { LeadStatus, Prisma } from '@prisma/client';
+import { LeadStatus } from '@prisma/client';
 import { isValidTransition } from '../../utils/leadWorkflow';
 import { AppError } from '../../middleware/error.middleware';
 
@@ -65,7 +65,7 @@ export class LeadService {
     const limit = filters.limit || 10;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.LeadWhereInput = {};
+    const where: any = {};
 
     if (filters.status) {
       where.status = filters.status;

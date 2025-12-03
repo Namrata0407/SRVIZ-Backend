@@ -13,6 +13,7 @@ declare module 'express' {
     status(code: number): Response;
     send(body: any): Response;
     on(event: string, callback: () => void): void;
+    statusCode: number;
   }
 
   export interface NextFunction {
@@ -32,21 +33,23 @@ declare module 'express' {
     post(path: string, ...handlers: any[]): Application;
     patch(path: string, ...handlers: any[]): Application;
     listen(port: number | string, callback?: () => void): any;
-    json(): any;
   }
 
   export interface Express {
     (): Application;
     Router(): IRouter;
+    json(): any;
   }
 
   function express(): Application;
   namespace express {
     function Router(): IRouter;
+    function json(): any;
   }
 
   export function Router(): IRouter;
   export type Router = IRouter;
+  export function json(): any;
 
   export default express;
 }
@@ -70,7 +73,9 @@ declare module 'swagger-jsdoc' {
     definition: any;
     apis: string[];
   }
-  export function swaggerJsdoc(options: Options): any;
+  function swaggerJsdoc(options: Options): any;
+  export default swaggerJsdoc;
+  export = swaggerJsdoc;
 }
 
 declare module 'winston' {
@@ -132,5 +137,17 @@ declare module '@prisma/client' {
     Interested = 'Interested',
     ClosedWon = 'ClosedWon',
     ClosedLost = 'ClosedLost',
+  }
+  export namespace Prisma {
+    export interface LeadWhereInput {
+      status?: LeadStatus;
+      eventId?: string;
+      event?: {
+        startDate?: {
+          gte?: Date;
+          lt?: Date;
+        };
+      };
+    }
   }
 }

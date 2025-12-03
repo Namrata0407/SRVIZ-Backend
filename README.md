@@ -61,7 +61,7 @@ A production-ready backend API for managing sports travel packages, leads, and d
    
    Edit `.env` and set your database URL:
    ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/srviz_db?schema=public"
+   DATABASE_URL=postgresql://user:password@localhost:5432/srviz_db?schema=public
    PORT=3000
    NODE_ENV=development
    ```
@@ -326,12 +326,33 @@ See `prisma/schema.prisma` for full schema definition.
 
 ## 🚢 Deployment
 
-### Build for production
+### Vercel Deployment
+
+1. **Add Environment Variables in Vercel Dashboard:**
+   - Go to: Project → Settings → Environment Variables
+   - Add: `DATABASE_URL` = Your PostgreSQL connection string
+   - Add: `NODE_ENV` = `production`
+   - Add: `VERCEL` = `1`
+
+2. **Deploy:**
+   ```bash
+   vercel --prod
+   ```
+
+3. **Run Migrations:**
+   ```bash
+   vercel env pull .env.local
+   npm run prisma:migrate:deploy
+   ```
+
+### Other Platforms
+
+**Build for production:**
 ```bash
 npm run build
 ```
 
-### Start production server
+**Start production server:**
 ```bash
 npm start
 ```
@@ -339,19 +360,20 @@ npm start
 ### Environment Variables for Production
 
 ```env
-DATABASE_URL="postgresql://user:password@host:5432/dbname?schema=public"
+DATABASE_URL=postgresql://user:password@host:5432/dbname?schema=public
 PORT=3000
 NODE_ENV=production
+VERCEL=1
 ```
 
 ### Deployment Checklist
 
 1. Set up PostgreSQL database
-2. Set environment variables
+2. Set environment variables (Vercel Dashboard for Vercel)
 3. Run migrations: `npm run prisma:migrate:deploy`
 4. Seed database: `npm run prisma:seed`
 5. Build: `npm run build`
-6. Start: `npm start`
+6. Deploy: `vercel --prod`
 
 ## 🔍 Logging
 
