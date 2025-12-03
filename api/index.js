@@ -3,7 +3,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 try {
-  const app = require('../dist/index.js').default;
+  const app = require('../dist/src/index.js').default;
   module.exports = app;
 } catch (error) {
   console.error('Error loading app:', error);
