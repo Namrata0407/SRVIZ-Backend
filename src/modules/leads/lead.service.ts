@@ -3,6 +3,29 @@ import { LeadStatus } from '@prisma/client';
 import { isValidTransition } from '../../utils/leadWorkflow';
 import { AppError } from '../../middleware/error.middleware';
 
+async function retryQuery<T>(queryFn: () => Promise<T>, maxRetries = 5): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await queryFn();
+    } catch (error: any) {
+      lastError = error;
+      const errorMsg = error.message || '';
+      const errorCode = error.meta?.code || error.code || '';
+      
+      if ((errorMsg.includes('prepared statement') || errorCode === '42P05') && i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200 * (i + 1)));
+        continue;
+      }
+      
+      if (i === maxRetries - 1) {
+        throw error;
+      }
+    }
+  }
+  throw lastError || new Error('Query failed after retries');
+}
+
 export interface CreateLeadInput {
   name: string;
   email: string;
@@ -61,62 +84,79 @@ export class LeadService {
   }
 
   async getLeads(filters: LeadFilters = {}) {
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
-    const skip = (page - 1) * limit;
+    try {
+      return await retryQuery(async () => {
+        const page = filters.page || 1;
+        const limit = filters.limit || 10;
+        const skip = (page - 1) * limit;
 
-    const where: any = {};
+        const where: any = {};
 
-    if (filters.status) {
-      where.status = filters.status;
-    }
+        if (filters.status) {
+          where.status = filters.status;
+        }
 
-    if (filters.eventId) {
-      where.eventId = filters.eventId;
-    }
+        if (filters.eventId) {
+          where.eventId = filters.eventId;
+        }
 
-    if (filters.month) {
-      where.event = {
-        startDate: {
-          gte: new Date(2024, filters.month - 1, 1),
-          lt: new Date(2024, filters.month, 1),
-        },
-      };
-    }
-
-    const [leads, total] = await Promise.all([
-      prisma.lead.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          event: {
-            select: {
-              id: true,
-              name: true,
-              startDate: true,
-              endDate: true,
+        if (filters.month) {
+          where.event = {
+            startDate: {
+              gte: new Date(2024, filters.month - 1, 1),
+              lt: new Date(2024, filters.month, 1),
             },
-          },
-          statusHistory: {
-            orderBy: { changedAt: 'desc' },
-            take: 5,
-          },
-        },
-      }),
-      prisma.lead.count({ where }),
-    ]);
+          };
+        }
 
-    return {
-      data: leads,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+        const [leads, total] = await Promise.all([
+          prisma.lead.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { createdAt: 'desc' },
+            include: {
+              event: {
+                select: {
+                  id: true,
+                  name: true,
+                  startDate: true,
+                  endDate: true,
+                },
+              },
+              statusHistory: {
+                orderBy: { changedAt: 'desc' },
+                take: 5,
+              },
+            },
+          }),
+          prisma.lead.count({ where }),
+        ]);
+
+        return {
+          data: leads,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+          },
+        };
+      });
+    } catch (error: any) {
+      if (error.message?.includes('does not exist') || error.meta?.code === 'P2021') {
+        return {
+          data: [],
+          pagination: {
+            page: filters.page || 1,
+            limit: filters.limit || 10,
+            total: 0,
+            totalPages: 0,
+          },
+        };
+      }
+      throw error;
+    }
   }
 
   async updateLeadStatus(leadId: string, newStatus: LeadStatus) {

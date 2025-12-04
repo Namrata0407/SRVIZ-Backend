@@ -3,9 +3,16 @@ import eventController, { getEventByIdValidators } from './event.controller';
 
 const router = Router();
 
-router.get('/', eventController.getAllEvents.bind(eventController));
+router.get(
+  '/',
+  eventController.getAllEvents.bind(eventController)
+);
 
-router.get('/:id', getEventByIdValidators, eventController.getEventById.bind(eventController));
+router.get(
+  '/:id',
+  getEventByIdValidators,
+  eventController.getEventById.bind(eventController)
+);
 
 router.get(
   '/:id/packages',
@@ -14,4 +21,3 @@ router.get(
 );
 
 export default router;
-

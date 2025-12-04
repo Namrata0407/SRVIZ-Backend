@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import quoteController, { generateQuoteValidators } from './quote.controller';
 
 const router = Router();
@@ -10,4 +10,3 @@ router.post(
 );
 
 export default router;
-

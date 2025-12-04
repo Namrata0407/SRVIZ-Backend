@@ -27,11 +27,21 @@ app.get('/health', async (req: Request, res: Response) => {
   let dbError = null;
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$connect();
+    await prisma.$disconnect();
     dbStatus = 'connected';
   } catch (error: any) {
     dbStatus = 'error';
-    dbError = error.message || 'Database connection failed';
+    const errorMsg = error.message || 'Database connection failed';
+    
+    if (errorMsg.includes('prepared statement') || errorMsg.includes('42P05')) {
+      dbError = 'Supabase pooler issue detected. Solution: Use direct connection in .env (change port 6543 to 5432 and remove .pooler. from URL)';
+    } else if (errorMsg.includes('does not exist')) {
+      dbError = 'Database tables missing. Run migrations first: npx prisma db push';
+    } else {
+      dbError = errorMsg;
+    }
+    
     logger.error('Database health check failed:', error);
   }
 
@@ -62,6 +72,11 @@ app.get('/', (req: Request, res: Response) => {
     version: '1.0.0',
     docs: '/api-docs',
     health: '/health',
+    endpoints: {
+      events: '/api/events',
+      leads: '/api/leads',
+      quotes: '/api/quotes/generate (POST)',
+    },
   });
 });
 
@@ -94,4 +109,3 @@ if (process.env.VERCEL !== '1') {
 }
 
 export default app;
-

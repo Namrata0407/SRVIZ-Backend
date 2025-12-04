@@ -14,8 +14,13 @@ const options = {
         description: 'Development server',
       },
     ],
+    tags: [
+      { name: 'Events', description: 'Event management endpoints' },
+      { name: 'Leads', description: 'Lead management endpoints' },
+      { name: 'Quotes', description: 'Quote generation endpoints' },
+    ],
   },
-  apis: ['./src/modules/**/*.routes.ts', './src/index.ts'],
+  apis: ['./src/modules/**/*.routes.ts', './src/modules/**/*.controller.ts', './src/index.ts'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

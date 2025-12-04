@@ -64,4 +64,3 @@ export const getEventByIdValidators = [
 ];
 
 export default new EventController();
-

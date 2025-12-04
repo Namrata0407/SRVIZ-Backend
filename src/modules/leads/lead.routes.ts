@@ -7,9 +7,17 @@ import leadController, {
 
 const router = Router();
 
-router.post('/', createLeadValidators, leadController.createLead.bind(leadController));
+router.post(
+  '/',
+  createLeadValidators,
+  leadController.createLead.bind(leadController)
+);
 
-router.get('/', getLeadsValidators, leadController.getLeads.bind(leadController));
+router.get(
+  '/',
+  getLeadsValidators,
+  leadController.getLeads.bind(leadController)
+);
 
 router.patch(
   '/:id/status',
@@ -18,4 +26,3 @@ router.patch(
 );
 
 export default router;
-
