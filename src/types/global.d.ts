@@ -32,6 +32,7 @@ declare module 'express' {
     get(path: string, ...handlers: any[]): Application;
     post(path: string, ...handlers: any[]): Application;
     patch(path: string, ...handlers: any[]): Application;
+    all(path: string, ...handlers: any[]): Application;
     listen(port: number | string, callback?: () => void): any;
   }
 

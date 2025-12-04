@@ -27,8 +27,7 @@ app.get('/health', async (req: Request, res: Response) => {
   let dbError = null;
 
   try {
-    await prisma.$connect();
-    await prisma.$disconnect();
+    await (prisma as any).$queryRaw`SELECT 1`;
     dbStatus = 'connected';
   } catch (error: any) {
     dbStatus = 'error';
@@ -58,6 +57,18 @@ app.get('/health', async (req: Request, res: Response) => {
 
   const statusCode = dbStatus === 'connected' ? 200 : 503;
   res.status(statusCode).json(healthData);
+});
+
+app.all('/api/quotes/generate', (req: Request, res: Response, next: any) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed. This endpoint only accepts POST requests.',
+      method: req.method,
+      allowed: 'POST',
+    });
+  }
+  next();
 });
 
 app.use('/api/leads', leadRoutes);
